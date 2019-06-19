@@ -8,7 +8,7 @@ from keras.optimizers import RMSprop, SGD
 from keras import callbacks, optimizers
 from keras.utils import np_utils
 from keras import backend as K
-from keras.models import Model
+from keras.models import Model,load_model
 from keras.preprocessing import image
 import matplotlib.pyplot as plt
 
@@ -33,22 +33,32 @@ x = Conv2D(32, (3, 3), activation='relu', padding='same', name='block1_conv2')(x
 x = MaxPooling2D((2, 2), strides=(2, 2), name='block2_pool')(x)
 x = Flatten(name='flatten')(x)
 x = Dense(128, activation='relu', name='fc1')(x)
-
 x = Lambda(lambda x: K.dropout(x, 0.5))(x)
-
-x = Dense(10, activation='softmax', name='fc_10')(x)
+x = Dense(128, activation='relu', name='fc2')(x)
+x = Lambda(lambda x: K.dropout(x, 0.5))(x)
+x = Dense(10, activation='softmax', name='fc_output')(x)
 model = Model(input_data, x)
 
 model.compile(loss = 'categorical_crossentropy', optimizer = optimizers.SGD(), metrics = ['accuracy'])
 model.summary()
 model.fit(x_train, y_train, epochs=20, batch_size=256)
 
+#model.save('./models/BNN_dropout.h5')
+model = load_model('./models/BNN_dropout.h5')
+
 pre = model.predict(x_test)
 
+#y_test = np.argmax(y_test, axis=1)
+#acc = np.mean(pre==y_test)
+#print('accuracy:',acc)
+#model.save('./model/BNN.h5')
+
+#noise = np.random.rand(28,28,1)
+#plt.imshow(noise,cmap='gray')
+#plt.show()
 
 
-
-ind = 3
+ind = 3016
 data = x_test[ind]
 data = np.expand_dims(data, axis=0)
 pre_cum = []
@@ -66,29 +76,27 @@ for i in range(100):
     acc_cum += [acc]
 print('\n')
 
-#y_test = np.argmax(y_test, axis=1)
-#acc = np.mean(pre==y_test)
-#print('accuracy:',acc)
-#model.save('./model/BNN.h5')
-
-#noise = np.random.rand(28,28,1)
-#plt.imshow(noise,cmap='gray')
-#plt.show()
 pre_cum = np.array(pre_cum)
 all_prob = []
-#ind = 6
-plt.figure(1)
+
+flag = None
+plt.figure()
 plt.imshow(x_test[ind,:,:,0])
-plt.figure(2)
+plt.figure()
 for i in range(10):
 #    histo_exp = np.exp(pre_cum[:,0,i])
 #    prob = np.percentile(histo_exp, 50)
     plt.subplot(1,10,i+1)
     plt.hist(pre_cum[:,0,i])
-    prob = np.percentile(pre_cum[:,0,i], 20)
+    prob = np.percentile(pre_cum[:,0,i], 50)
     print('prob ',i, ':', prob)
 #    all_prob.append(prob)
-    
+    if prob > 0.7:
+        flag = i
+if flag != None:
+    print('class:',flag)
+else:
+    print('not know')    
     
 
 img_rand = np.random.rand(1,28,28,1)
@@ -109,9 +117,12 @@ print('\n')
 rand_pre_cum = np.array(rand_pre_cum)
 all_prob_rand = []
 
-plt.figure(1)
+
+flag = None
+
+plt.figure()
 plt.imshow(img_rand[0,:,:,0])
-plt.figure(2)
+plt.figure()
 for i in range(10):
 #    histo_exp = np.exp(pre_cum[:,0,i])
 #    prob = np.percentile(histo_exp, 50)
@@ -119,12 +130,17 @@ for i in range(10):
     plt.hist(rand_pre_cum[:,0,i])
     prob = np.percentile(rand_pre_cum[:,0,i], 50)
     print('prob ',i, ':', prob)
+    if prob > 0.7:
+        flag = i
 #    all_prob.append(prob)
-
+if flag != None:
+    print('class:',flag)
+else:
+    print('not know')
 
 
 # './img/A/SWNlY3ViZS50dGY=.png'    
-img = image.load_img('./img/A/SGVsdmV0aWNhUm91bmRlZExULUJvbGRDb25kT2JsLm90Zg==.png', target_size=(28, 28))
+img = image.load_img('./img/F/NXRoR3JhZGVyLnR0Zg==.png', target_size=(28, 28))
 img = image.img_to_array(img)
 img = img/255
 img = img[:,:,0]
@@ -140,15 +156,22 @@ for i in range(100):
     pre = model.predict(img)
 #    pre_arg += [np.argmax(pre, axis=1)]
     pre_cum += [pre]
-    
+print('\n')
 pre_cum = np.array(pre_cum)
 
+flag = None
 plt.figure()
 for i in range(10):
 #    histo_exp = np.exp(pre_cum[:,0,i])
 #    prob = np.percentile(histo_exp, 50)
     plt.subplot(1,10,i+1)
     plt.hist(pre_cum[:,0,i])
-    prob = np.percentile(pre_cum[:,0,i], 20)
+    prob = np.percentile(pre_cum[:,0,i], 50)
     print('prob ',i, ':', prob)
+    if prob > 0.8:
+        flag = i
+if flag != None:
+    print('class:',flag)
+else:
+    print('not know')
     
