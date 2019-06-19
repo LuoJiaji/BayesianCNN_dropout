@@ -1,3 +1,4 @@
+import cv2 
 import numpy as np
 from keras.datasets import mnist
 from keras.layers import Input, Flatten, Dense, Dropout, Layer,Lambda
@@ -8,6 +9,8 @@ from keras import callbacks, optimizers
 from keras.utils import np_utils
 from keras import backend as K
 from keras.models import Model
+from keras.preprocessing import image
+import matplotlib.pyplot as plt
 
 
 (x_train, y_train), (x_test, y_test) = mnist.load_data()
@@ -42,3 +45,110 @@ model.fit(x_train, y_train, epochs=20, batch_size=256)
 
 pre = model.predict(x_test)
 
+
+
+
+ind = 3
+data = x_test[ind]
+data = np.expand_dims(data, axis=0)
+pre_cum = []
+pre_arg = []
+acc_cum = []
+
+for i in range(100):
+    print('\r','test iter:',i,end = '')
+    pre = model.predict(data)
+#    pre_arg += [np.argmax(pre, axis=1)]
+    pre_cum += [pre]
+    pre = np.argmax(pre, axis=1)
+    pre_arg += [pre]
+    acc = np.mean(pre==y_test)
+    acc_cum += [acc]
+print('\n')
+
+#y_test = np.argmax(y_test, axis=1)
+#acc = np.mean(pre==y_test)
+#print('accuracy:',acc)
+#model.save('./model/BNN.h5')
+
+#noise = np.random.rand(28,28,1)
+#plt.imshow(noise,cmap='gray')
+#plt.show()
+pre_cum = np.array(pre_cum)
+all_prob = []
+#ind = 6
+plt.figure(1)
+plt.imshow(x_test[ind,:,:,0])
+plt.figure(2)
+for i in range(10):
+#    histo_exp = np.exp(pre_cum[:,0,i])
+#    prob = np.percentile(histo_exp, 50)
+    plt.subplot(1,10,i+1)
+    plt.hist(pre_cum[:,0,i])
+    prob = np.percentile(pre_cum[:,0,i], 20)
+    print('prob ',i, ':', prob)
+#    all_prob.append(prob)
+    
+    
+
+img_rand = np.random.rand(1,28,28,1)
+rand_pre_cum = []
+rand_pre_arg = []
+radn_acc_cum = []
+
+for i in range(100):
+    print('\r','random iter:',i,end = '')
+    pre = model.predict(img_rand)
+#    pre_arg += [np.argmax(pre, axis=1)]
+    rand_pre_cum += [pre]
+#    pre = np.argmax(pre, axis=1)
+#    pre_arg += [pre]
+#    acc = np.mean(pre==y_test)
+#    acc_cum += [acc]
+print('\n')
+rand_pre_cum = np.array(rand_pre_cum)
+all_prob_rand = []
+
+plt.figure(1)
+plt.imshow(img_rand[0,:,:,0])
+plt.figure(2)
+for i in range(10):
+#    histo_exp = np.exp(pre_cum[:,0,i])
+#    prob = np.percentile(histo_exp, 50)
+    plt.subplot(1,10,i+1)
+    plt.hist(rand_pre_cum[:,0,i])
+    prob = np.percentile(rand_pre_cum[:,0,i], 50)
+    print('prob ',i, ':', prob)
+#    all_prob.append(prob)
+
+
+
+# './img/A/SWNlY3ViZS50dGY=.png'    
+img = image.load_img('./img/A/SGVsdmV0aWNhUm91bmRlZExULUJvbGRDb25kT2JsLm90Zg==.png', target_size=(28, 28))
+img = image.img_to_array(img)
+img = img/255
+img = img[:,:,0]
+#img = cv2.transpose(img)
+plt.figure()
+plt.imshow(img)
+
+pre_cum = []
+img = np.expand_dims(img, axis=0)
+img = np.expand_dims(img, axis=3)
+for i in range(100):
+    print('\r','random iter:',i,end = '')
+    pre = model.predict(img)
+#    pre_arg += [np.argmax(pre, axis=1)]
+    pre_cum += [pre]
+    
+pre_cum = np.array(pre_cum)
+
+plt.figure()
+for i in range(10):
+#    histo_exp = np.exp(pre_cum[:,0,i])
+#    prob = np.percentile(histo_exp, 50)
+    plt.subplot(1,10,i+1)
+    plt.hist(pre_cum[:,0,i])
+    prob = np.percentile(pre_cum[:,0,i], 20)
+    print('prob ',i, ':', prob)
+    
