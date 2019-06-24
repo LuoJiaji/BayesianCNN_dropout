@@ -32,7 +32,7 @@ x = MaxPooling2D((2, 2), strides=(2, 2), name='block2_pool')(x)
 x = Flatten(name='flatten')(x)
 x = Dense(128, activation='relu', name='fc1')(x)
 #x = Lambda(lambda x: K.dropout(x, 0.5))(x)
-x = Dropout(0.5)(x)
+#x = Dropout(0.5)(x)
 x = Dense(128, activation='relu', name='fc2')(x)
 x = Lambda(lambda x: K.dropout(x, 0.5))(x)
 x = Dense(10, activation='softmax', name='fc_output')(x)
@@ -40,7 +40,7 @@ model = Model(input_data, x)
 
 model.compile(loss = 'categorical_crossentropy', optimizer = optimizers.SGD(), metrics = ['accuracy'])
 model.summary()
-model.fit(x_train, y_train, epochs=40, batch_size=128)
+#model.fit(x_train, y_train, epochs=40, batch_size=128)
 
 #model.save('./models/BNN_dropout.h5')
 model = load_model('./models/BNN_dropout.h5')
@@ -75,12 +75,24 @@ def test_img(model, img):
     flag = None
     plt.figure()
     plt.imshow(img[0,:,:,0])
-    plt.figure()
+    plt.xticks([])
+    plt.yticks([])
+    
+    plt.figure(figsize=(20,2.7))
+#    plt.ylim((0,1))
     for i in range(10):
     #    histo_exp = np.exp(pre_cum[:,0,i])
     #    prob = np.percentile(histo_exp, 50)
         plt.subplot(1,10,i+1)
         plt.hist(pre_cum[:,0,i])
+        plt.ylim((0,100))
+        plt.xlabel(i,{'size':20})
+        if i == 0:
+            plt.xticks([])
+        else:
+            plt.xticks([])
+            plt.yticks([])
+        
         prob = np.percentile(pre_cum[:,0,i], 50)
         print('prob ',i, ':', prob)
         all_prob.append(prob)
@@ -89,13 +101,13 @@ def test_img(model, img):
     if flag != None:
         print('class:',flag)
     else:
-        print('not know')
+        print('unknown')
         
     return flag
     
     
 # 测试集数据测试
-ind = 3023
+ind = 7
 data = x_test[ind]
 data = np.expand_dims(data, axis=0)
 re = test_img(model, data)
@@ -107,10 +119,9 @@ re = test_img(model, img_rand)
 
 
 
-
 # 未知数据测试
 # './img/A/SWNlY3ViZS50dGY=.png'    
-img = image.load_img('./img/I/Q2FiYXJnYUN1cnNJQ0cub3Rm.png', target_size=(28, 28))
+img = image.load_img('./img/A/SVRDIFRpZXBvbG8gQmxhY2sgSXRhbGljLnBmYg==.png', target_size=(28, 28))
 img = image.img_to_array(img)
 img = img/255
 img = img[:,:,0]
@@ -118,3 +129,13 @@ img = np.expand_dims(img, axis=0)
 img = np.expand_dims(img, axis=3)
 re = test_img(model, img)
 
+# 测试蝶姐图片的识别效果
+ind = 7
+data1 = x_test[ind]
+data1 = np.expand_dims(data1, axis=0)
+ind = 10
+data2 = x_test[ind]
+data2 = np.expand_dims(data2, axis=0)
+beta = 0.5
+data = beta*data1 +(1-beta)*data2
+re = test_img(model, data)
